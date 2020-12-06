@@ -4,10 +4,17 @@ simple chat room server created to teach myself a bit of networking in C
 
 educational resources
 	binarytides.com/socket-programming-c-linux -tutorial/
-	
+
+structure
+	bin folder
+		contains any compiled binaries
+	includes
+		includes header files for source files
+	src 
+		contains all source code
 
 compile command 
-	gcc -g -Wall -pedantic chat_se.c -o chat
+	gcc -g -Wall -pedantic chat_se.c -o bin/chat
 
 usage for main branch 
 	run ./chat
