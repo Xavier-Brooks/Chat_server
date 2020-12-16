@@ -6,7 +6,9 @@ educational resources
 	binarytides.com/socket-programming-c-linux -tutorial/
 
 extra notes 
+
 	8888 is the hardcoded port I used at the start of the project for all server side startups
+	
 	can change in source if you desired or modiify code as you see fit.
 
 structure
