@@ -19,14 +19,15 @@
 //includes folder
 #include "../includes/ERRORS.h"
 
-void *connection_handler(void *cli_socket_desc);
+//void *connection_handler(void *cli_socket_desc);
 
 int main(int argc, char *argv[]){
 
 	int socket_des, cli, c, *new_client_socket;
-	//char *myip;
-	char *msg;
+	char buf[100], buf2[100];
 	struct sockaddr_in server_s, client_s;
+
+	int read_size = 0;
 
 	//creates the socket we'll be using
 	socket_des = socket(AF_INET, SOCK_STREAM, 0);
@@ -40,10 +41,6 @@ int main(int argc, char *argv[]){
 	server_s.sin_addr.s_addr = INADDR_ANY;
 	server_s.sin_family = AF_INET;
 	server_s.sin_port = htons(8888);
-
-	//print ip address for clients to connect to
-	//inet_ntop(AF_INET, &(server_s.sin_addr), myip, INET_ADDRSTRLEN);
-	//printf("My ip address is: %s\n", myip);
 
 	//binds a sock to ip address and port during server up-time
 	if(bind(socket_des, (struct sockaddr *)&server_s, sizeof(server_s)) < 0){
@@ -63,25 +60,48 @@ int main(int argc, char *argv[]){
 	//	2. server program is closed
 	while( (cli = accept(socket_des, (struct sockaddr*)&client_s, (socklen_t*)&c)) ){
 
-		msg = "hello new user...\n";
-		write(cli, msg, strlen(msg));
+		printf("Connection established...\n");
 
-		pthread_t clients;
-		new_client_socket = malloc(1);
-		if(new_client_socket == NULL){
-			printf("failed to allocate socket id for new client\n");
-			return 1;
-		}
+	        read_size = recv(cli,buf,100,0);
+	        if( read_size == -1){
+           	 	printf("Error in receiving");
+           		break;
+        	}
 
-		*new_client_socket = cli;
-		if(pthread_create(&clients, NULL, connection_handler, (void *) new_client_socket) < 0) {
-			printf("new client thread couldn't be created\n");
-			free(new_client_socket);
-			return 1;
-		};
+        	printf("Message got from client is : %s",buf);
 
-		pthread_join(clients, NULL);
+		memset(buf, '\0', sizeof(buf));
 
+        	fgets(buf,100,stdin);
+        	if(strncmp(buf,"end",3)==0)
+            		break;
+
+        	read_size = send(socket_des,buf2,100,0);
+        	if(read_size == -1){
+           		printf("Error in sending");
+            		break;
+        	}
+
+		memset(buf2, '\0', sizeof(buf2));
+
+//		msg = "hello new user...\n";
+//		write(cli, msg, strlen(msg));
+
+//		pthread_t clients;
+//		new_client_socket = malloc(1);
+//		if(new_client_socket == NULL){
+//			printf("failed to allocate socket id for new client\n");
+//			return 1;
+//		}
+
+//		*new_client_socket = cli;
+//		if(pthread_create(&clients, NULL, connection_handler, (void *) new_client_socket) < 0) {
+//			printf("new client thread couldn't be created\n");
+//			free(new_client_socket);
+//			return 1;
+//		}
+
+//		pthread_join(clients, NULL);
 	}
 
 	if (cli < 0){
@@ -94,35 +114,47 @@ int main(int argc, char *argv[]){
 	return 0;
 }
 
-void *connection_handler(void *cli_socket_desc){
-	int cli_desc = *(int *)cli_socket_desc;
-	int read_size;
-	char my_message[1000], clients_msg[1000];
+//void *connection_handler(void *cli_socket_desc){
+//	int cli_desc = *(int *)cli_socket_desc;
+//	int read_size;
+//	char clients_msg[100], server_msg[100];
 
-	while(1){
+//	while(1){
 
-		//clears teh buffer before each iteration so that characters from older messages don't
+		//clears the buffer before each iteration so that characters from older messages don't
 		//occur in new messages
-		memset(clients_msg, '\0', sizeof(clients_msg));
-		memset(my_message, '\0', sizeof(my_message));
+//		memset(clients_msg, '\0', sizeof(clients_msg));
+//		memset(server_msg, '\0', sizeof(server_msg));
 
 		//recieve message from client
-		read_size = recv(cli_desc, clients_msg, 1000, 0);
-		printf("%s", clients_msg);
+//		read_size = recv(cli_desc, clients_msg, 100, 0);
+//		if(read_size == -1){
+//			printf("error reading form client\n");
+//		}
+
+//		printf("Message from Client is: %s\n", clients_msg);
+//		printf("Message for teh Client is: ");
+
+//		fgets(server_msg, 100, stdin);
+//		if( (strncmp(server_msg, "end", 3)) == 0){
+//			break;
+//		}
 
 		//send the message back to client
-		send(cli_desc, my_message, strlen(my_message), 0);
+//		read_size = send(cli_desc, server_msg, strlen(server_msg), 0);
+//		if(read_size == -1){
+//			printf("Error sending message\n");
+//		}
+//	}
 
-	}
-
-	if(read_size == 0){
-		printf("client disconnected\n");
-	}
-	else if(read_size == -1){
-		printf("recv error\n");
-	}
-
-	free(cli_socket_desc);
-}
+//	if(read_size == 0){
+//		printf("client disconnected\n");
+//	}
+//	else if(read_size == -1){
+//		printf("recv error\n");
+//	}
+//
+//	free(cli_socket_desc);
+//}
 
 

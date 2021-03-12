@@ -20,18 +20,22 @@
 
 int main(int argc, char *argv[]){
 
-	int cli_des, read_size;
+	int sock, msg_status;
 	unsigned short port;
-
 	struct sockaddr_in server_s;
-
-	char msg[1000], reply[1000];
+	char buf[100] = {0}, buffer[100] = {0};
 
 	if(argc != 3){
 		printf("program requires 2 arguments ip address then port to connect to\n");
 		printf("example: ./chat_cli 198.1.1.1 8888\n");
 		printf("try again\n");
 		exit(ARG_ERR);
+	}
+
+	//create client side socket
+	if( (sock = socket(AF_INET, SOCK_STREAM, 0)) < 0){
+		printf("failed creating client socket\n");
+		exit(SOCK_ERR);
 	}
 
 	//stores ip of the server proveded by user
@@ -42,31 +46,40 @@ int main(int argc, char *argv[]){
 	server_s.sin_family = AF_INET;
 	server_s.sin_port = htons(port);
 
-	//creates client side socket
-	if( (cli_des = socket(AF_INET, SOCK_STREAM, 0)) < 0){
-		printf("failed on creation of client socket\n");
-		exit(SOCK_ERR);
-	}
-
 	//connect to the server
-	if( connect(cli_des, (struct sockaddr *)&server_s, sizeof(server_s)) < 0){
+	if( connect(sock, (struct sockaddr *)&server_s, sizeof(server_s)) < 0){
 		printf("connection error try again\n");
+		close(sock);
 		exit(CONN_ERR);
 	}
 
 	while(1){
 
-		read_size = recv(server_s, msg, 1000, 0);
-		if((read_size == 0) || (read_size == -1)){
-			printf("error receiving servers message\n");
+		memset(buf, '\0', sizeof(buf));
+		memset(buffer, '\0', sizeof(buffer));
+
+		printf("Enter message for server: ");
+		fgets(buf, 100, stdin);
+		if(strncmp(buf, "end", 3) == 0){
+			break;
+		}
+		msg_status = send(sock, buf, 100, 0);
+
+		if(msg_status == -1){
+			printf("Error sending message\n");
+			close(sock);
+			exit(CONN_ERR);
 		}
 
-		printf("%s", msg);
-
-		write();
+		if (recv(sock, buffer, 100, 0) == -1){
+			close(sock);
+			printf("recv failed\n");
+			exit(CONN_ERR);
+		}
+		printf("Msg rom server is: %s\n", buf);
 
 	}
-
-	close(cli_des);
+	close(sock);
 	return 0;
 }
+
